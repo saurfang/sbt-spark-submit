@@ -1,13 +1,8 @@
-# An activator seed for creating sbt plugins
+# sbt-spark-submit
 
-[![Build Status](https://travis-ci.org/VoxNova/sbt-plugin-seed.svg?branch=master)](https://travis-ci.org/VoxNova/sbt-plugin-seed)
+[![Build Status](https://travis-ci.org/saurfang/sbt-spark-submit.svg?branch=master)](https://travis-ci.org/saurfang/sbt-spark-submit)
 
-### Resources
-
-[SBT-Plugin Best Practices](http://www.scala-sbt.org/0.13/docs/Plugins-Best-Practices.html)
-
-[Building Scala/SBT Projects with Travis CI](http://docs.travis-ci.com/user/languages/scala/)
-
-[SBT AutoPlugins Tutorial](http://mukis.de/pages/sbt-autoplugins-tutorial/)
-
-[testing sbt plugins](http://eed3si9n.com/testing-sbt-plugins)
+This sbt plugin provides customizable sbt tasks to fire Spark jobs against local or remote Spark clusters.
+It allows you submit Spark applications without leaving your favorite development environment.
+The reactive nature of sbt makes it possible to integrate this with your Spark clusters whether it is a standalone
+cluster, YARN cluster, clusters run on EC2 and etc.

@@ -1,25 +1,28 @@
-sbtPlugin := true
+import bintray.Keys._
+import sbt.Keys._
 
-//Change to your organization
-organization := "com.github.saurfang"
+lazy val commonSettings = Seq(
+  organization in ThisBuild := "com.github.saurfang",
+  scalaVersion := "2.10.5",
+  scalacOptions ++= Seq("-deprecation", "-feature"),
+  libraryDependencies += "org.scalatest" %% "scalatest" % "2.2.4" % "test",
+  git.useGitDescribe := true,
+  git.baseVersion := "0.0.1"
+)
 
-//Change to your plugin name
-name := """sbt-spark-submit"""
+lazy val root = (project in file(".")).
+  enablePlugins(GitVersioning).
+  settings(commonSettings ++ bintrayPublishSettings: _*).
+  settings(
+    sbtPlugin := true,
+    name := "sbt-spark-submit",
+    licenses += ("Apache-2.0", url("https://www.apache.org/licenses/LICENSE-2.0.html")),
+    publishMavenStyle := false,
+    repository in bintray := {
+      if(isSnapshot.value) "sbt-plugin-snapshots" else "sbt-plugin-releases"
+    },
+    bintrayOrganization in bintray := None
+  ).
+  settings(scriptedSettings: _*).
+  settings(scriptedLaunchOpts += "-Dplugin.version=" + version.value)
 
-//Change to the version
-version := "0.1-SNAPSHOT"
-
-scalaVersion := "2.10.5"
-
-scalacOptions ++= Seq("-deprecation", "-feature")
-
-resolvers += Resolver.sonatypeRepo("snapshots")
-
-// Change this to another test framework if you prefer
-libraryDependencies += "org.scalatest" %% "scalatest" % "2.2.4" % "test"
-
-
-// Scripted - sbt plugin tests
-scriptedSettings
-
-scriptedLaunchOpts += "-Dplugin.version=" + version.value
