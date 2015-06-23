@@ -21,6 +21,7 @@ object SparkSubmitPlugin extends AutoPlugin {
     lazy val sparkSubmitAppArgs = settingKey[Seq[String]]("Arguments used for spark application")
     lazy val sparkSubmitMaster = settingKey[(Seq[String], Seq[String]) => String]("(SparkArgs, AppArgs) => Default Spark Master")
     lazy val sparkSubmitPropertiesFile = settingKey[Option[String]]("The default configuration file used by Spark")
+    lazy val sparkSubmitClasspath = taskKey[Seq[File]]("Classpath used in SparkSubmit. For example, this can include the HADOOP_CONF_DIR for yarn deployment.")
 
     class SparkSetting(name: String) {
       lazy val sparkSubmit = InputKey[Unit](name,
@@ -65,12 +66,12 @@ object SparkSubmitPlugin extends AutoPlugin {
             }
           }
 
+
           runner.value.run(
             "org.apache.spark.deploy.SparkSubmit",
-            data((fullClasspath in Compile).value),
+            sparkSubmitClasspath.value,
             options,
             streams.value.log) foreach println
-
         }
       )
     }
@@ -91,7 +92,8 @@ object SparkSubmitPlugin extends AutoPlugin {
       sparkSubmitAppArgs := Seq(),
       sparkSubmitSparkArgs := Seq(),
       sparkSubmitMaster := {(_, _) => "local"},
-      sparkSubmitPropertiesFile := None
+      sparkSubmitPropertiesFile := None,
+      sparkSubmitClasspath := data((fullClasspath in Compile).value)
     )
 
   def defaultSparkSubmitSetting: SparkSetting = new SparkSetting("sparkSubmit") {
