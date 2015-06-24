@@ -41,15 +41,7 @@ object SparkSubmitPlugin extends AutoPlugin {
         this.settings +:= (taskKey in this := value)
         this
       }
-      def setting[T](taskKey: TaskKey[Seq[T]], value: T*): this.type = {
-        this.settings +:= (taskKey in this := value)
-        this
-      }
       def setting[T](settingKey: SettingKey[T], value: T): this.type = {
-        this.settings +:= (settingKey in this := value)
-        this
-      }
-      def setting[T](settingKey: SettingKey[Seq[T]], value: T*): this.type = {
         this.settings +:= (settingKey in this := value)
         this
       }
@@ -100,6 +92,11 @@ object SparkSubmitPlugin extends AutoPlugin {
 
     object SparkSubmitSetting {
       def apply(name: String): SparkSubmitSetting = new SparkSubmitSetting(name)
+      def apply(name: String, sparkArgs: Seq[String] = Seq(), appArgs: Seq[String] = Seq()): SparkSubmitSetting = {
+        new SparkSubmitSetting(name).
+          setting(sparkSubmitSparkArgs, sparkArgs).
+          setting(sparkSubmitAppArgs, appArgs)
+      }
       def apply(sparkSubmitSettings: SparkSubmitSetting*): Seq[Def.Setting[_]] = {
         sparkSubmitSettings.map(_.toSettings).reduce(_ ++ _)
       }

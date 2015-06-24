@@ -135,29 +135,26 @@ import sbtsparksubmit.SparkSubmitPlugin.autoImport._
 
 object SparkSubmit {
   lazy val settings =
-    SparkSubmitSetting("sparkPi").
-      setting(
-        sparkSubmitSparkArgs,
-        "--class", "SparkPi"
-      )
+    SparkSubmitSetting("sparkPi",
+      Seq("--class", "SparkPi")
+    )
 }
 ```
 Here we created a single `SparkSubmitSetting` object and fuses it with additional settings.
 
 To create multiple tasks, you can wrap them with `SparkSubmitSetting` again like this:
 ```scala
-lazy val settings = SparkSubmitSetting(
-    SparkSubmitSetting("spark2").
-      setting(sparkSubmitSparkArgs,
-        "--class", "Main2"
-      ),
-    SparkSubmitSetting("spark2Other").
-      setting(sparkSubmitSparkArgs,
-        "--class", "Main2"
-      ).
-      setting(sparkSubmitAppArgs,
-        "hello.txt"
-      )
+  lazy val settings = SparkSubmitSetting(
+    SparkSubmitSetting("spark1",
+      Seq("--class", "Main1")
+    ),
+    SparkSubmitSetting("spark2",
+      Seq("--class", "Main2")
+    ),
+    SparkSubmitSetting("spark2Other",
+      Seq("--class", "Main2"),
+      Seq("hello.txt")
+    )
   )
 ```
 
@@ -170,7 +167,23 @@ sbt spark2Other
 ```
 would be equivalent.
 
+`SparkSubmitSetting` has three `apply` functions:
+```scala
+def apply(name: String): SparkSubmitSetting
+def apply(name: String, sparkArgs: Seq[String] = Seq(), appArgs: Seq[String] = Seq()): SparkSubmitSetting
+def apply(sparkSubmitSettings: SparkSubmitSetting*): Seq[Def.Setting[_]]
+```
+The first creates a simple `SparkSubmitSetting` object with a custom task name. The object itself has `setting` function
+that allows you to blend in additional settings that is specific to this task.
 
+Because the most common use case of custom task is to provide custom default Spark and Application arguments,
+the second variant allow you provide those directly.
+
+There is already an implicit conversion from `SparkSubmitSetting` to `Seq[Def.Setting[_]]` which allows you to
+append itself to your project. When there are multiple settings, the third variant allows you to aggregate all
+of them without additional type hinting for implicit to work.
+
+See `src/sbt-test/sbt-spark-submit/multi-main` for examples.
 
 ## Multi-project builds
 
@@ -185,6 +198,8 @@ will correctly trigger build on project A while `sparkB` will do the same for pr
 select any specific project. 
 
 Of course, `sparkB` task won't even trigger a build on `A` unless `B` depends on `A` thanks to the magic of sbt.
+
+See `src/sbt-test/sbt-spark-submit/multi-project` for examples.
 
 ## Resources
 

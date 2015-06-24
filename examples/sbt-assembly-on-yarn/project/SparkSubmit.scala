@@ -2,10 +2,10 @@ import sbtsparksubmit.SparkSubmitPlugin.autoImport._
 
 object SparkSubmit {
   lazy val settings: Seq[sbt.Def.Setting[_]] =
-    SparkSubmitSetting("sparkPi").
-      setting(
-        sparkSubmitSparkArgs,
-        "--class", "SparkPi",
-        "--num-executors", "1000"
+    SparkSubmitSetting("sparkPi",
+        Seq(
+          "--class", "SparkPi",
+          "--num-executors", "1000"
+        )
       )
 }

@@ -3,15 +3,9 @@ import sbt._
 
 object SparkSubmit {
   lazy val settingsFoo = SparkSubmitSetting(
-    SparkSubmitSetting("sparkFoo").
-      setting(sparkSubmitSparkArgs,
-        "--class", "Main"
-      )
+    SparkSubmitSetting("sparkFoo", Seq("--class", "Main"))
   )
   lazy val settingsBar = SparkSubmitSetting(
-    SparkSubmitSetting("sparkBar").
-      setting(sparkSubmitSparkArgs,
-        "--class", "Main"
-      )
+    SparkSubmitSetting("sparkBar", Seq("--class", "Main"))
   )
 }
