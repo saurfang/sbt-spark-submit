@@ -128,3 +128,24 @@ object SparkSubmitPlugin extends AutoPlugin {
 
   override def trigger = allRequirements
 }
+
+object SparkSubmitYARN extends AutoPlugin {
+  override def requires = SparkSubmitPlugin
+
+  import SparkSubmitPlugin.autoImport._
+  override def projectSettings = Seq(
+    //defaults to yarn-cluster if approriate
+    sparkSubmitMaster := {
+      (sparkArgs, appArgs) =>
+        if(appArgs.contains("--help"))
+          "local"
+        else
+          "yarn-cluster"
+    },
+    //include HADOOP/YARN CONF in classpath
+    sparkSubmitClasspath := {
+      Seq("HADOOP_CONF_DIR", "YARN_CONF_DIR").flatMap(sys.env.get).map(new File(_)) ++
+        data((fullClasspath in Compile).value)
+    }
+  )
+}

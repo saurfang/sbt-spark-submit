@@ -1,7 +1,7 @@
 import sbtsparksubmit.SparkSubmitPlugin.autoImport._
 
 object SparkSubmit {
-  lazy val settings =
+  lazy val settings: Seq[sbt.Def.Setting[_]] =
     SparkSubmitSetting("sparkPi").
       setting(
         sparkSubmitSparkArgs,

@@ -10,21 +10,10 @@ libraryDependencies ++= Seq(
   "org.apache.hadoop" % "hadoop-yarn-client" % "2.4.0" % "provided"
 )
 
-//defaults to yarn-cluster if approriate
-sparkSubmitMaster := {
-  (sparkArgs, appArgs) =>
-    if(appArgs.contains("--help"))
-      "local"
-    else
-      "yarn-cluster"
-}
+//fill in default YARN settings
+enablePlugins(SparkSubmitYARN)
 //supply default spark configuration
 sparkSubmitPropertiesFile := Some(s"${(Keys.resourceDirectory in Compile).value}/spark-defaults.conf")
-//make sure yarn-site.xml is on classpath
-sparkSubmitClasspath := {
-  new File(sys.env.getOrElse("HADOOP_CONF_DIR", "")) +:
-    data((fullClasspath in Compile).value)
-}
 //submit the assembly jar with all dependencies
 sparkSubmitJar := assembly.value
 //now blend in the sparkSubmit settings

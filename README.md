@@ -42,6 +42,14 @@ libraryDependencies ++= Seq(
 )
 ```
 
+Finally you should use 
+```scala
+enablePlugins(SparkSubmitYARN)
+```
+to enable default YARN settings. This defaults the master to `yarn-cluster` whenever appropriate and append 
+`HADOOP_CONF_DIR/YARN_CONF_DIR` to launcher classpath so YARN resource manager can be correctly determined. 
+See below for more details.
+
 ## Feature
 
 This AutoPlugin automatically adds a `sparkSubmit` task to every project in your build, the usage is as follows:
@@ -104,7 +112,7 @@ sparkSubmitClasspath := {
 
 ### SparkSubmit inputKey
 `sparkSubmit` is a generic `inputKey` and we will show you how to define additional tasks that have
-different default behavior in terms of parameters. However in terms of the inputKey itself, it parses
+different default behavior in terms of parameters. However as for the inputKey itself, it parses
 space delimited arguments. If `--` is present, the former part gets appended to `sparkSubmitSparkArgs` and
 the latter part gets appended to `sparkSubmitAppArgs`. If `--` is missing, then all arguments are assumed
 to be application arguments.
