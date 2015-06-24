@@ -1,0 +1,26 @@
+# call the sparkFoo task to run Main under foo
+> sparkFoo
+# verify it has written the correct file
+$ exists foo.txt
+$ delete foo.txt
+$ absent bar.txt
+
+# call the sparkBar task to run Main under bar
+> sparkBar
+# verify it has written the correct file
+$ exists bar.txt
+$ delete bar.txt
+$ absent foo.txt
+
+# call the sparkSubmit task to run Main under both projects
+> sparkSubmit --class Main --
+# verify it has written the correct file
+$ exists foo.txt bar.txt
+$ delete foo.txt bar.txt
+
+# call the sparkSubmit task under foo directly
+> foo/sparkSubmit --class Main --
+# verify it has written the correct file
+$ exists foo.txt
+$ delete foo.txt
+$ absent bar.txt

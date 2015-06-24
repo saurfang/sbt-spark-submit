@@ -23,7 +23,7 @@ object SparkSubmitPlugin extends AutoPlugin {
     lazy val sparkSubmitPropertiesFile = settingKey[Option[String]]("The default configuration file used by Spark")
     lazy val sparkSubmitClasspath = taskKey[Seq[File]]("Classpath used in SparkSubmit. For example, this can include the HADOOP_CONF_DIR for yarn deployment.")
 
-    class SparkSetting(name: String) {
+    class SparkSubmitSetting(name: String) {
       lazy val sparkSubmit = InputKey[Unit](name,
         """Submit a Spark job. Usage: sbt "sparkSubmit --master=<local|yarn|...>
           |--class=<main class> [other options passed to spark-submit] --
@@ -31,7 +31,29 @@ object SparkSubmitPlugin extends AutoPlugin {
           |Use -- to separate spark-submit arguments and application arguments.
         """.stripMargin)
 
-      lazy val settings: Seq[Setting[_]] = Seq()
+      private[this] var settings: Seq[Setting[_]] = Seq()
+      def toSettings = defaultSettings ++ settings
+      def settings(setting: Setting[_]*): this.type = {
+        this.settings ++= settings
+        this
+      }
+      def setting[T](taskKey: TaskKey[T], value: T): this.type = {
+        this.settings +:= (taskKey in this := value)
+        this
+      }
+      def setting[T](taskKey: TaskKey[Seq[T]], value: T*): this.type = {
+        this.settings +:= (taskKey in this := value)
+        this
+      }
+      def setting[T](settingKey: SettingKey[T], value: T): this.type = {
+        this.settings +:= (settingKey in this := value)
+        this
+      }
+      def setting[T](settingKey: SettingKey[Seq[T]], value: T*): this.type = {
+        this.settings +:= (settingKey in this := value)
+        this
+      }
+
 
       lazy val defaultSettings = Seq(
         sparkSubmit := {
@@ -76,9 +98,15 @@ object SparkSubmitPlugin extends AutoPlugin {
       )
     }
 
-    implicit def sparkSettingsToSeq(s: SparkSetting): Seq[Def.Setting[_]] = {
-      s.defaultSettings ++ s.settings
+    object SparkSubmitSetting {
+      def apply(name: String): SparkSubmitSetting = new SparkSubmitSetting(name)
+      def apply(sparkSubmitSettings: SparkSubmitSetting*): Seq[Def.Setting[_]] = {
+        sparkSubmitSettings.map(_.toSettings).reduce(_ ++ _)
+      }
     }
+
+    implicit def sparkSettingToSeq(s: SparkSubmitSetting): Seq[Def.Setting[_]] = s.toSettings
+    implicit def sparkSettingToInputKey(s: SparkSubmitSetting): InputKey[Unit] = s.sparkSubmit
   }
 
   import autoImport._
@@ -96,9 +124,7 @@ object SparkSubmitPlugin extends AutoPlugin {
       sparkSubmitClasspath := data((fullClasspath in Compile).value)
     )
 
-  def defaultSparkSubmitSetting: SparkSetting = new SparkSetting("sparkSubmit") {
-
-  }
+  def defaultSparkSubmitSetting: SparkSubmitSetting = SparkSubmitSetting("sparkSubmit")
 
   override def trigger = allRequirements
 }

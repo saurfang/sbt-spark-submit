@@ -5,4 +5,4 @@
 # call the sparkPi task to run SparkPi
 > sparkPi
 # call the sparkPi task with argument
-> sparkPi 10
+> sparkPi 5

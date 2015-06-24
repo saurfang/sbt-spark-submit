@@ -1,0 +1,19 @@
+# call the spark1 task to run Main1
+> spark1
+# verify it has written the correct file
+$ exists hello1.txt
+
+# call the spark2 task to run Main2
+> spark2
+# verify it has written the correct file
+$ exists hello2.txt
+
+# call the spark2Other task to run Main2 with another argument
+> spark2Other
+# verify it has written the correct file
+$ exists hello.txt
+
+# call the spark2 with custom argument
+> spark2 myfile.txt
+# verify it has written the correct file
+$ exists myfile.txt
