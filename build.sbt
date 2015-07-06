@@ -4,7 +4,8 @@ import sbt.Keys._
 lazy val commonSettings = Seq(
   organization in ThisBuild := "com.github.saurfang",
   scalaVersion := "2.10.5",
-  scalacOptions ++= Seq("-deprecation", "-feature"),
+  javacOptions ++= Seq("-source", "1.7", "-target", "1.7"),
+  scalacOptions ++= Seq("-target:jvm-1.7", "-deprecation", "-feature"),
   libraryDependencies += "org.scalatest" %% "scalatest" % "2.2.4" % "test",
   git.useGitDescribe := true,
   git.baseVersion := "0.0.2"
