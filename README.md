@@ -12,7 +12,7 @@ cluster, YARN cluster, clusters run on EC2 and etc.
 For sbt 0.13.6+ add sbt-spark-submit to your `project/plugins.sbt` or `~/.sbt/0.13/plugins/plugins.sbt` file:
 
 ```scala
-addSbtPlugin("com.github.sarufang" % "sbt-spark-submit" % "0.0.2")
+addSbtPlugin("com.github.saurfang" % "sbt-spark-submit" % "0.0.2")
 ```
 
 Naturally you will need to have spark dependency in your project itself such as:
