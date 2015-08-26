@@ -6,3 +6,5 @@
 > sparkPi
 # call the sparkPi task with argument
 > sparkPi 5
+# call the sparkPi2 task which depends on other settingKey
+> sparkPi2

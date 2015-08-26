@@ -18,3 +18,8 @@ object SparkPi {
     spark.stop()
   }
 }
+
+/** Multiple main presents so sparkSubmit requires --class argument **/
+object Dummy {
+  def main(args: Array[String]) {}
+}

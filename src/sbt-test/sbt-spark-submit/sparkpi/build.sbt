@@ -1,3 +1,5 @@
+name := "SparkPi"
+
 lazy val root = (project in file("."))
   .settings(SparkSubmit.settings: _*)
 

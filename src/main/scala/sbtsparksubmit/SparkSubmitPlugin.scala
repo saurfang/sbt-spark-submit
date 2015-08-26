@@ -33,7 +33,7 @@ object SparkSubmitPlugin extends AutoPlugin {
 
       private[this] var settings: Seq[Setting[_]] = Seq()
       def toSettings = defaultSettings ++ settings
-      def settings(setting: Setting[_]*): this.type = {
+      def settings(settings: Setting[_]*): this.type = {
         this.settings ++= settings
         this
       }
