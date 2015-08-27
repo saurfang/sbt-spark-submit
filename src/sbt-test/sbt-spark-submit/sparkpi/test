@@ -1,5 +1,5 @@
 # call the sparkSubmit task
-> sparkSubmit
+-> sparkSubmit
 # call the sparkSubmit task to run SparkPi
 > sparkSubmit --class SparkPi --
 # call the sparkPi task to run SparkPi

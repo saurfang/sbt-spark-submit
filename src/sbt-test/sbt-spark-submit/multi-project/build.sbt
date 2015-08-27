@@ -5,6 +5,7 @@ lazy val commonSettings = Seq(
 )
 
 lazy val root = (project in file("."))
+  .disablePlugins(SparkSubmitPlugin)
   .aggregate(foo, bar)
 
 lazy val foo = (project in file("foo"))

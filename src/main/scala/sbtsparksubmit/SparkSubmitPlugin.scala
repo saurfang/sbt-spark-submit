@@ -85,7 +85,7 @@ object SparkSubmitPlugin extends AutoPlugin {
             "org.apache.spark.deploy.SparkSubmit",
             sparkSubmitClasspath.value,
             options,
-            streams.value.log) foreach println
+            streams.value.log) foreach sys.error
         }
       )
     }
