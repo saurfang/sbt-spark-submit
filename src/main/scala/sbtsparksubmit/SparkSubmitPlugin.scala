@@ -16,7 +16,7 @@ object SparkSubmitPlugin extends AutoPlugin {
    * when the plugin is enabled
    */
   object autoImport {
-    lazy val sparkSubmitJar = taskKey[File]("The job jar for spark-submit")
+    lazy val sparkSubmitJar = taskKey[String]("The job jar for spark-submit")
     lazy val sparkSubmitSparkArgs = settingKey[Seq[String]]("Arguments used for spark-submit")
     lazy val sparkSubmitAppArgs = settingKey[Seq[String]]("Arguments used for spark application")
     lazy val sparkSubmitMaster = settingKey[(Seq[String], Seq[String]) => String]("(SparkArgs, AppArgs) => Default Spark Master")
@@ -49,7 +49,7 @@ object SparkSubmitPlugin extends AutoPlugin {
 
       lazy val defaultSettings = Seq(
         sparkSubmit := {
-          val jar = (sparkSubmitJar in sparkSubmit).value.getAbsolutePath
+          val jar = (sparkSubmitJar in sparkSubmit).value
 
           var sparkArgs = (sparkSubmitSparkArgs in sparkSubmit).value
           var appArgs = (sparkSubmitAppArgs in sparkSubmit).value
@@ -113,7 +113,7 @@ object SparkSubmitPlugin extends AutoPlugin {
    */
   override def projectSettings: Seq[Def.Setting[_]] = defaultSparkSubmitSetting ++
     Seq(
-      sparkSubmitJar := (packageBin in Compile).value,
+      sparkSubmitJar := (packageBin in Compile).value.getAbsolutePath,
       sparkSubmitAppArgs := Seq(),
       sparkSubmitSparkArgs := Seq(),
       sparkSubmitMaster := {(_, _) => "local"},
