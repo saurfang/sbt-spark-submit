@@ -7,14 +7,14 @@
 This sbt plugin provides customizable sbt tasks to fire Spark jobs against local or remote Spark clusters.
 It allows you submit Spark applications without leaving your favorite development environment.
 The reactive nature of sbt makes it possible to integrate this with your Spark clusters whether it is a standalone
-cluster, YARN cluster, clusters run on EC2 and etc.
+cluster, [YARN cluster](examples/sbt-assembly-on-yarn), [clusters run on EC2](examples/sbt-assembly-on-ec2) and etc.
 
 ## Setup
 
 For sbt 0.13.6+ add sbt-spark-submit to your `project/plugins.sbt` or `~/.sbt/0.13/plugins/plugins.sbt` file:
 
 ```scala
-addSbtPlugin("com.github.saurfang" % "sbt-spark-submit" % "0.0.3")
+addSbtPlugin("com.github.saurfang" % "sbt-spark-submit" % "0.0.4")
 ```
 
 Naturally you will need to have spark dependency in your project itself such as:
@@ -75,8 +75,9 @@ Below we go into details about various keys that controls the default behavior o
 More advanced techniques include but not limited to:
 
 1. Use one-jar plugins such as `sbt-assembly` to create a fat jar for deployment.
-2. While YARN would automatically upload the application jar, it doesn't seem to be the case for Spark Standalone
-cluster. So you might inject a JAR uploading process inside this key and returns the uploaded JAR instead.
+2. While YARN automatically uploads the application jar, it doesn't seem to be the case for Spark Standalone
+cluster. So you can inject a JAR uploading process inside this key and returns the uploaded JAR instead. See
+[sbt-assembly-on-ec2](examples/sbt-assembly-on-ec2) for an example.
 
 ### Spark and Application Arguments
 `sparkSubmitSparkArgs` and `sparkSubmitAppArgs` represents the arguments for Spark and Application respectively.
@@ -91,30 +92,33 @@ More interesting ones may be:
 
 1. If there is `--help` in `appArgs` you will want to run as `local` to see the usage information immediately.
 2. For YARN deployment, `yarn-cluster` is appropriate especially if you are submitting to a remote cluster from IDE.
-3. For EC2 deployment, you can use `spark-ec2` script to figure out the correct address of Spark master.
+3. For EC2 deployment, you can use `spark-ec2` script to figure out the correct address of Spark master. See
+[sbt-assembly-on-ec2](examples/sbt-assembly-on-ec2) for an example.
 
 ### Default Properties File
 `sparkSubmitPropertiesFile` specifies the default properties file to use if `--properties-file` is not already supplied.
 
 This can be especially useful for YARN deployment by pointing the Spark assembly to a JAR on HDFS via `spark.yarn.jar`
-property so as to avoid the overhead of uploading Spark assembly jar everytime application is submitted.
+property so as to avoid the overhead of uploading Spark assembly jar every time application is submitted. See
+[sbt-assembly-on-ec2](examples/sbt-assembly-on-yarn) for an example.
 
 Other interesting settings include driver/executor memory/cores, RDD compression/serialization and etc.
 
 ### Classpath
 `sparkSubmitClassPath` sets the classpath to use for Spark application deployment. Currently this is only relevant for
 YARN deployment as I couldn't get `yarn-site.xml` correctly picked up even when `HADOOP_CONF_DIR` is properly set.
-In this case, you need to add:
+In this case, you can add:
 ```scala
 sparkSubmitClasspath := {
   new File(sys.env.getOrElse("HADOOP_CONF_DIR", "")) +:
     data((fullClasspath in Compile).value)
 }
 ```
+Note: This is already automatically injected once you `enablePlugins(SparkSubmitYARN)`
 
 ### SparkSubmit inputKey
 `sparkSubmit` is a generic `inputKey` and we will show you how to define additional tasks that have
-different default behavior in terms of parameters. However as for the inputKey itself, it parses
+different default behavior in terms of parameters. As for the inputKey itself, it parses
 space delimited arguments. If `--` is present, the former part gets appended to `sparkSubmitSparkArgs` and
 the latter part gets appended to `sparkSubmitAppArgs`. If `--` is missing, then all arguments are assumed
 to be application arguments.
@@ -142,7 +146,9 @@ object SparkSubmit {
     )
 }
 ```
+
 Here we created a single `SparkSubmitSetting` object and fuses it with additional settings.
+
 
 To create multiple tasks, you can wrap them with `SparkSubmitSetting` again like this:
 ```scala
@@ -185,7 +191,7 @@ There is already an implicit conversion from `SparkSubmitSetting` to `Seq[Def.Se
 append itself to your project. When there are multiple settings, the third variant allows you to aggregate all
 of them without additional type hinting for implicit to work.
 
-See `src/sbt-test/sbt-spark-submit/multi-main` for examples.
+See [`src/sbt-test/sbt-spark-submit/multi-main`](src/sbt-test/sbt-spark-submit/multi-main) for examples.
 
 ## Multi-project builds
 
@@ -201,8 +207,8 @@ select any specific project.
 
 Of course, `sparkB` task won't even trigger a build on `A` unless `B` depends on `A` thanks to the magic of sbt.
 
-See `src/sbt-test/sbt-spark-submit/multi-project` for examples.
+See [`src/sbt-test/sbt-spark-submit/multi-project`](src/sbt-test/sbt-spark-submit/multi-project) for examples.
 
 ## Resources
 
-For more information and working examples, see projects under `examples` and `src/sbt-test`.
+For more information and working examples, see projects under [`examples`](examples) and [`src/sbt-test`](src/sbt-test).
