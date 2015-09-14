@@ -7,8 +7,7 @@ lazy val commonSettings = Seq(
   javacOptions ++= Seq("-source", "1.7", "-target", "1.7"),
   scalacOptions ++= Seq("-target:jvm-1.7", "-deprecation", "-feature"),
   libraryDependencies += "org.scalatest" %% "scalatest" % "2.2.4" % "test",
-  git.useGitDescribe := true,
-  git.baseVersion := "0.0.2"
+  git.useGitDescribe := true
 )
 
 lazy val root = (project in file(".")).
