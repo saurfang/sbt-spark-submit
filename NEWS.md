@@ -16,8 +16,8 @@ such as `hdfs:///tmp/my-awesome-job.jar`
 
 ## [0.0.3] - 2015-08-26
 ### Changed
-- Unsuccessful submission now emits error and shos on the screen
-- Compile sources to Java 7 for comparability
+- Unsuccessful submission now emits error and shows on the screen
+- Compile sources to Java 7 for compatability
 
 ### Fixed
 - Fix a bug that prevents `settings(settings: Setting[_]*)` from working
