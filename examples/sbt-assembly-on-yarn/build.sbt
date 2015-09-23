@@ -15,6 +15,6 @@ enablePlugins(SparkSubmitYARN)
 //supply default spark configuration
 sparkSubmitPropertiesFile := Some(s"${(Keys.resourceDirectory in Compile).value}/spark-defaults.conf")
 //submit the assembly jar with all dependencies
-sparkSubmitJar := assembly.value
+sparkSubmitJar := assembly.value.getAbsolutePath
 //now blend in the sparkSubmit settings
 SparkSubmit.settings
