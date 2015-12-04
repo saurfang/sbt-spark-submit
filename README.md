@@ -9,6 +9,29 @@ It allows you submit Spark applications without leaving your favorite developmen
 The reactive nature of sbt makes it possible to integrate this with your Spark clusters whether it is a standalone
 cluster, [YARN cluster](examples/sbt-assembly-on-yarn), [clusters run on EC2](examples/sbt-assembly-on-ec2) and etc.
 
+## Motivation
+
+As an awesome Scala developer, your Spark development experience is probably as follows:
+```bash
+# create assembly jar upon code change
+sbt assembly
+# coffee break as Scala builds
+# transfer the jar to a cluster co-located host
+scp target/scala-2.10/myproject-version-assembly.jar sparkcluster:myworkspace
+# ssh into that launcher host
+ssh sparkcluster
+cd myworkspace
+# fire spark-submit
+$SPARK_HOME/bin/spark-submit --class not.memorable.package.applicaiton.class --master yarn --num-executor 10 \
+  --conf some.crazy.config=xyz --executor-memory=lotsG \
+  myproject-version-assembly.jar \
+  <glorious-application-arguments...>
+```
+But it doesn't have to be that hard. With this plugin you can reduce all above steps into:
+```bash
+sbt "sparkSubmitMyClass <additional custom app arguments...>"
+```
+
 ## Setup
 
 For sbt 0.13.6+ add sbt-spark-submit to your `project/plugins.sbt` or `~/.sbt/0.13/plugins/plugins.sbt` file:
@@ -65,6 +88,29 @@ sbt "sparkSubmit --class SparkPi -- 10"
 sbt "sparkSubmit --master local[2] --class SparkPi --"
 sbt "sparkSubmit myarguments"
 ```
+
+You can also define specialized SparkSubmit task, we recommend create a `project/SparkSubmit.scala`:
+```scala
+import sbtsparksubmit.SparkSubmitPlugin.autoImport._
+
+object SparkSubmit {
+  lazy val settings =
+    SparkSubmitSetting("sparkPi",
+      Seq("--class", "SparkPi")
+    )
+}
+```
+Then in the `build.sbt`, import the settings by:
+```scala
+SparkSubmit.settings
+```
+With that you just gained a new sbt task called `sparkPi` which you can run by `sbt sparkPi`. 
+The task automatically recompiles and repackages the JAR as needed. It starts the SparkPi example in local
+mode. You can change the default Spark master by specifying `--master` as you would with *spark-submit*.
+You can embed default Spark and/or Application arguments in the sbt task to cover you most common
+use cases. Please see [below](#define-custom-sparksubmit-task) for more details for custom spark-submit task.
+
+
 Below we go into details about various keys that controls the default behavior of this task.
 
 
