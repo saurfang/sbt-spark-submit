@@ -27,10 +27,45 @@ $SPARK_HOME/bin/spark-submit --class not.memorable.package.applicaiton.class --m
   myproject-version-assembly.jar \
   <glorious-application-arguments...>
 ```
-But it doesn't have to be that hard. With this plugin you can reduce all above steps into:
+But it doesn't have to be that hard. With this plugin you can reduce above steps into:
 ```bash
 sbt "sparkSubmitMyClass <additional custom app arguments...>"
 ```
+
+## Feature
+
+This AutoPlugin automatically adds a `sparkSubmit` task to every project in your build, the usage is as follows:
+```shell
+sbt "sparkSubmit <spark arguments> -- <application arguments>"
+```
+For example
+```shell
+sbt "sparkSubmit --class SparkPi --"
+sbt "sparkSubmit --class SparkPi -- 10"
+sbt "sparkSubmit --master local[2] --class SparkPi --"
+```
+
+You can also define specialized SparkSubmit task, we recommend create a `project/SparkSubmit.scala`:
+```scala
+import sbtsparksubmit.SparkSubmitPlugin.autoImport._
+
+object SparkSubmit {
+  lazy val settings =
+    SparkSubmitSetting("sparkPi",
+      Seq("--class", "SparkPi")
+    )
+}
+```
+Then in the `build.sbt`, import the settings by:
+```scala
+SparkSubmit.settings
+```
+With that you just gained a new sbt task called `sparkPi` which you can run by `sbt sparkPi`. 
+The task automatically recompiles and repackages the JAR as needed. It starts the SparkPi example in local
+mode. You can change the default Spark master by specifying `--master` as you would with *spark-submit*.
+You can embed default Spark and/or Application arguments in the sbt task to cover you most common
+use cases. Please see [below](#define-custom-sparksubmit-task) for more details for custom spark-submit task.
+
 
 ## Setup
 
@@ -75,41 +110,70 @@ to enable default YARN settings. This defaults the master to `yarn-cluster` when
 `HADOOP_CONF_DIR/YARN_CONF_DIR` to launcher classpath so YARN resource manager can be correctly determined. 
 See below for more details.
 
-## Feature
+## Define Custom SparkSubmit Tasks
 
-This AutoPlugin automatically adds a `sparkSubmit` task to every project in your build, the usage is as follows:
-```shell
-sbt "sparkSubmit <spark arguments> -- <application arguments>"
-```
-For example
-```shell
-sbt "sparkSubmit --class SparkPi --"
-sbt "sparkSubmit --class SparkPi -- 10"
-sbt "sparkSubmit --master local[2] --class SparkPi --"
-sbt "sparkSubmit myarguments"
-```
-
-You can also define specialized SparkSubmit task, we recommend create a `project/SparkSubmit.scala`:
+To create multiple tasks, you can wrap them with `SparkSubmitSetting` again like this:
 ```scala
-import sbtsparksubmit.SparkSubmitPlugin.autoImport._
-
-object SparkSubmit {
-  lazy val settings =
-    SparkSubmitSetting("sparkPi",
-      Seq("--class", "SparkPi")
+  lazy val settings = SparkSubmitSetting(
+    SparkSubmitSetting("spark1",
+      Seq("--class", "Main1")
+    ),
+    SparkSubmitSetting("spark2",
+      Seq("--class", "Main2")
+    ),
+    SparkSubmitSetting("spark2Other",
+      Seq("--class", "Main2"),
+      Seq("hello.txt")
     )
-}
+  )
 ```
-Then in the `build.sbt`, import the settings by:
-```scala
-SparkSubmit.settings
-```
-With that you just gained a new sbt task called `sparkPi` which you can run by `sbt sparkPi`. 
-The task automatically recompiles and repackages the JAR as needed. It starts the SparkPi example in local
-mode. You can change the default Spark master by specifying `--master` as you would with *spark-submit*.
-You can embed default Spark and/or Application arguments in the sbt task to cover you most common
-use cases. Please see [below](#define-custom-sparksubmit-task) for more details for custom spark-submit task.
 
+Notice here are two differently named tasks run the same class but with different application arguments.
+
+Of course, you can still append additional arguments in this task. For example:
+```shell
+sbt "spark2 hello.txt"
+sbt spark2Other
+```
+would be equivalent.
+
+`SparkSubmitSetting` has three `apply` functions:
+```scala
+def apply(name: String): SparkSubmitSetting
+def apply(name: String, sparkArgs: Seq[String] = Seq(), appArgs: Seq[String] = Seq()): SparkSubmitSetting
+def apply(sparkSubmitSettings: SparkSubmitSetting*): Seq[Def.Setting[_]]
+```
+The first creates a simple `SparkSubmitSetting` object with a custom task name. The object itself has `setting` function
+that allows you to blend in additional settings that is specific to this task.
+
+Because the most common use case of custom task is to provide custom default Spark and Application arguments,
+the second variant allow you provide those directly.
+
+There is already an implicit conversion from `SparkSubmitSetting` to `Seq[Def.Setting[_]]` which allows you to
+append itself to your project. When there are multiple settings, the third variant allows you to aggregate all
+of them without additional type hinting for implicit to work.
+
+See [`src/sbt-test/sbt-spark-submit/multi-main`](src/sbt-test/sbt-spark-submit/multi-main) for examples.
+
+
+## Multi-project builds
+
+If you are really awesome to have a multi-project builds, be careful that `sbt sparkSubmit` will trigger aggregation
+thus firing multiple instances each for every project. You can do `sbt projectA/sparkSubmit` to restrict the project
+scope.
+
+However if you define additional sparkSubmit tasks with unique names, this becomes very friendly. For example,
+say you have two projects `A` and `B`, for which you define `sparkA1`, `sparkA2` and `sparkB` tasks respectively.
+As long as you attach the `sparkA1` and `sparkA2` to project `A` and `sparkB` to project `B`, `sbt sparkA1` and `sbt sparkA2`
+will correctly trigger build on project A while `sparkB` will do the same for project `B` even though you didn't
+select any specific project. 
+
+Of course, `sparkB` task won't even trigger a build on `A` unless `B` depends on `A` thanks to the magic of sbt.
+
+See [`src/sbt-test/sbt-spark-submit/multi-project`](src/sbt-test/sbt-spark-submit/multi-project) for examples.
+
+
+## Customization
 
 Below we go into details about various keys that controls the default behavior of this task.
 
@@ -178,82 +242,6 @@ then it will be included.
 Finally it runs the Spark application deploy process using the specified Classpath and specified JAR with
 above mentioned arguments.
 
-
-
-## Define Custom SparkSubmit Task
-To define specialized SparkSubmit task, we recommend create `project/SparkSubmit.scala`:
-```scala
-import sbtsparksubmit.SparkSubmitPlugin.autoImport._
-
-object SparkSubmit {
-  lazy val settings =
-    SparkSubmitSetting("sparkPi",
-      Seq("--class", "SparkPi")
-    )
-}
-```
-
-Here we created a single `SparkSubmitSetting` object and fuses it with additional settings.
-
-
-To create multiple tasks, you can wrap them with `SparkSubmitSetting` again like this:
-```scala
-  lazy val settings = SparkSubmitSetting(
-    SparkSubmitSetting("spark1",
-      Seq("--class", "Main1")
-    ),
-    SparkSubmitSetting("spark2",
-      Seq("--class", "Main2")
-    ),
-    SparkSubmitSetting("spark2Other",
-      Seq("--class", "Main2"),
-      Seq("hello.txt")
-    )
-  )
-```
-
-Notice here are two differently named tasks run the same class but with different application arguments.
-
-Of course, you can still append additional arguments in this task. For example:
-```shell
-sbt "spark2 hello.txt"
-sbt spark2Other
-```
-would be equivalent.
-
-`SparkSubmitSetting` has three `apply` functions:
-```scala
-def apply(name: String): SparkSubmitSetting
-def apply(name: String, sparkArgs: Seq[String] = Seq(), appArgs: Seq[String] = Seq()): SparkSubmitSetting
-def apply(sparkSubmitSettings: SparkSubmitSetting*): Seq[Def.Setting[_]]
-```
-The first creates a simple `SparkSubmitSetting` object with a custom task name. The object itself has `setting` function
-that allows you to blend in additional settings that is specific to this task.
-
-Because the most common use case of custom task is to provide custom default Spark and Application arguments,
-the second variant allow you provide those directly.
-
-There is already an implicit conversion from `SparkSubmitSetting` to `Seq[Def.Setting[_]]` which allows you to
-append itself to your project. When there are multiple settings, the third variant allows you to aggregate all
-of them without additional type hinting for implicit to work.
-
-See [`src/sbt-test/sbt-spark-submit/multi-main`](src/sbt-test/sbt-spark-submit/multi-main) for examples.
-
-## Multi-project builds
-
-If you are really awesome to have a multi-project builds, be careful that `sbt sparkSubmit` will trigger aggregation
-thus firing multiple instances each for every project. You can do `sbt projectA/sparkSubmit` to restrict the project
-scope.
-
-However if you define additional sparkSubmit tasks with unique names, this becomes very friendly. For example,
-say you have two projects `A` and `B`, for which you define `sparkA1`, `sparkA2` and `sparkB` tasks respectively.
-As long as you attach the `sparkA1` and `sparkA2` to project `A` and `sparkB` to project `B`, `sbt sparkA1` and `sbt sparkA2`
-will correctly trigger build on project A while `sparkB` will do the same for project `B` even though you didn't
-select any specific project. 
-
-Of course, `sparkB` task won't even trigger a build on `A` unless `B` depends on `A` thanks to the magic of sbt.
-
-See [`src/sbt-test/sbt-spark-submit/multi-project`](src/sbt-test/sbt-spark-submit/multi-project) for examples.
 
 ## Resources
 
