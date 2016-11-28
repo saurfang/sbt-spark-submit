@@ -150,6 +150,30 @@ object SparkSubmitPlugin extends AutoPlugin {
   override def trigger = allRequirements
 }
 
+// requirement: libraryDependencies += spark-repk
+object SparkShellPlugin extends AutoPlugin {
+  override def requires = SparkSubmitPlugin
+
+  import SparkSubmitPlugin.autoImport._
+
+  lazy val sparkShellSetting: SparkSubmitSetting = SparkSubmitSetting(
+    "sparkShell",
+    Seq(
+      "--class", "org.apache.spark.repl.Main",
+      "--deploy-mode", "client"
+    )
+  )
+  def sparkShellKey = sparkShellSetting.sparkSubmit
+
+  override def projectSettings = sparkShellSetting ++
+    Seq(
+      fork in sparkShellKey := true,
+      javaOptions in sparkShellKey += "-Dscala.usejavacp=true",
+      outputStrategy in sparkShellKey := Some(StdoutOutput),
+      connectInput in sparkShellKey := true
+    )
+}
+
 object SparkSubmitYARN extends AutoPlugin {
   override def requires = SparkSubmitPlugin
 
