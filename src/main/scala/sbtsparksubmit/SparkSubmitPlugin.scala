@@ -81,11 +81,11 @@ object SparkSubmitPlugin extends AutoPlugin {
           }
 
 
-          runner.value.run(
+          RunResult(runner.value.run(
             "org.apache.spark.deploy.SparkSubmit",
             sparkSubmitClasspath.value,
             options,
-            streams.value.log) foreach sys.error
+            streams.value.log)).foreach(sys.error)
         }
       )
     }
